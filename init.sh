@@ -59,6 +59,8 @@ function jump_prompt {
     PORT=$2
     if [ "${OS}" == "Darwin" ] ; then
         P_SOCKS="$(netstat -na | grep tcp4 | grep -e "\.$PORT" | wc -l | sed -e 's! !!g')"
+    elif [ "${OS}" == "Cygwin" ] ; then
+        P_SOCKS="$(netstat -na | grep TCP | grep -e ":$PORT" | wc -l | sed -e 's! !!g')"
     else
         P_SOCKS="$(netstat -na | grep tcp4 | grep -e ":$PORT" | wc -l | sed -e 's! !!g')"
     fi
