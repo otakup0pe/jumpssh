@@ -1,7 +1,7 @@
 Jump SSH Helper
 ===============
 
-Much as I often need to [juggle](http://blog.eghetto.ca/post/112089594641/juggling-clouds) multiple AWS accounts the same is true for forwarding various TCP streams over SOCKS5 tunnels. The scripts in this repository provide a wrapper around autossh, and some shell aliases to help make life a little easier.
+Much as I often need to [juggle](http://blog.jonathanfreedman.bio/post/112089594641/juggling-clouds) multiple AWS accounts the same is true for forwarding various TCP streams over SOCKS5 tunnels. The scripts in this repository provide a wrapper around autossh, and some shell aliases to help make life a little easier.
 
 The autossh component keeps the SOCKS5 connections always open and the various shell helpers allow you to easily run such commands as curl, ssh, and scp over them. Normal SOCKS5 applications of course also should work with this setup. Note that DNS queries may also be forwarded over this SOCSK5 connection if your application supports that.
 
