@@ -7,16 +7,17 @@ function usage
 }
 
 if [ $# == 1 ] ; then
+    CMD="$1"
     JUMP=""
 elif [ $# == 2 ] ; then
-    JUMP=$2
+    CMD="$2"    
+    JUMP="$1"
 else
     usage
 fi
 
-CMD="${1}"
-
-if [ "${JUMPSSH_TMP}" == "" ] ; then
+LOGDIR="${HOME}/var/log"
+if [ -z "${JUMPSSH_TMP}" ] ; then
     PIDDIR="${JUMPSSH_PATH}/tmp"
 else
     PIDDIR=$JUMPSSH_TMP
@@ -24,42 +25,47 @@ fi
 
 . "${JUMPSSH_SOCKS}"
 
-if [ ! -d $PIDDIR ] ; then
-    mkdir -p $PIDDIR
+if [ ! -d "$PIDDIR" ] ; then
+    mkdir -p "$PIDDIR"
+fi
+if [ ! -d "$LOGDIR" ] ; then
+    mkdir -p "$LOGDIR"
 fi
 
-function problems
+problems()
 {
     echo "Error ${1}"
     exit 1
 }
 
-function start_jump
+start_jump()
 {
     HOST="${1}"
     AUTOSSH_PIDFILE="${PIDDIR}/${HOST}"
-    if [ -e $AUTOSSH_PIDFILE ] ; then
-        ps $(cat $AUTOSSH_PIDFILE) &> /dev/null
-        if [ $? == 0 ] ; then
+    if [ -e "$AUTOSSH_PIDFILE" ] ; then
+        
+        if ps "$(cat "$AUTOSSH_PIDFILE")" &> /dev/null ; then
             echo "${HOST} already running"
         else
             echo "${HOST} crashed"
         fi
     fi
     AUTOSSH_PIDFILE=$AUTOSSH_PIDFILE \
-                   autossh -f -M $RANDOM $HOST -N
+                   AUTOSSH_LOGFILE="${LOGDIR}/autossh-${HOST}" \
+                   AUTOSSH_POLL=5 \
+                   autossh -f -M $RANDOM "$HOST" -N
     unset AUTOSSH_PIDFILE
     unset HOST
 }
 
-function stop_jump
+stop_jump()
 {
     HOST="${1}"
     AUTOSSH_PIDFILE="${PIDDIR}/${HOST}"
-    if [ ! -e $AUTOSSH_PIDFILE ] ; then
+    if [ ! -e "$AUTOSSH_PIDFILE" ] ; then
         echo "${HOST} not running"
     else
-        kill $(cat $AUTOSSH_PIDFILE)
+        kill "$(cat "$AUTOSSH_PIDFILE")"
     fi
     unset AUTOSSH_PIDFILE
     unset HOST
@@ -69,11 +75,11 @@ function status_jump
 {
     HOST="${1}"
     AUTOSSH_PIDFILE="${PIDDIR}/${HOST}"
-    if [ ! -e $AUTOSSH_PIDFILE ] ; then
+    if [ ! -e "$AUTOSSH_PIDFILE" ] ; then
         echo "${HOST} not running"
     else
-        ps $(cat $AUTOSSH_PIDFILE) &> /dev/null
-        if [ $? == 0 ] ; then
+        
+        if ps "$(cat "$AUTOSSH_PIDFILE")" &> /dev/null ; then
             echo "${HOST} is running"
         else
             echo "${HOST} crashed"
@@ -85,28 +91,28 @@ case "${CMD}" in
     start)
         if [ "$JUMP" == "" ] ; then
             for j in $JUMPSSH_AUTO ; do
-                start_jump $j || problems "unable to start ${j}"
+                start_jump "$j" || problems "unable to start ${j}"
             done
         else
-            start_jump $JUMP
+            start_jump "$JUMP"
         fi
         ;;
     stop)
         if [ "$JUMP" == "" ] ; then
             for j in $JUMPSSH_AUTO ; do
-                stop_jump $j || problems "unable to stop ${j}"
+                stop_jump "$j" || problems "unable to stop ${j}"
             done
         else
-            stop_jump $JUMP
+            stop_jump "$JUMP"
         fi
         ;;
     status)
         if [ "$JUMP" == "" ] ; then
             for j in $JUMPSSH_AUTO ; do
-                status_jump $j
+                status_jump "$j"
             done
         else
-            status_jump $JUMP
+            status_jump "$JUMP"
         fi
         ;;
     *)
