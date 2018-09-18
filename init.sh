@@ -57,10 +57,12 @@ function jumpcurl {
 function jump_prompt {
     NAME=$1
     PORT=$2
-    if [ "${OS}" == "Darwin" ] ; then
+    if [ "$OS" == "Darwin" ] ; then
         P_SOCKS="$(netstat -na | grep tcp4 | grep -e "\.$PORT" | wc -l | sed -e 's! !!g')"
-    elif [ "${OS}" == "Cygwin" ] ; then
+    elif [ "$OS" == "Cygwin" ] ; then
         P_SOCKS="$(netstat -na | grep TCP | grep -e ":$PORT" | wc -l | sed -e 's! !!g')"
+    elif [ "$OS" == "WSL" ] ; then
+        P_SOCKS="$(netstat.exe -na | grep TCP | grep -e "$PORT" | wc -l | sed -e 's! !!g')"
     else
         P_SOCKS="$(netstat -na | grep tcp4 | grep -e ":$PORT" | wc -l | sed -e 's! !!g')"
     fi
