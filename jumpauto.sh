@@ -4,7 +4,7 @@ set -e
 
 function usage
 {
-    echo "jumpauto [start|stop|status]"
+    echo "jumpauto [start|stop|restart|status]"
     exit 1
 }
 
@@ -12,7 +12,7 @@ if [ $# == 1 ] ; then
     CMD="$1"
     JUMP=""
 elif [ $# == 2 ] ; then
-    CMD="$2"    
+    CMD="$2"
     JUMP="$1"
 else
     usage
@@ -57,22 +57,22 @@ problems()
 check_pid()
 {
     local HOST="$1"
-    AUTOSSH_PIDFILE="${PIDDIR}/${HOST}"    
-    [ ! -z "$AUTOSSH_PIDFILE" ]
+    AUTOSSH_PIDFILE="${PIDDIR}/${HOST}"
+    [ -n "$AUTOSSH_PIDFILE" ]
     if [ -e "$AUTOSSH_PIDFILE" ] ; then
         JUMPSSH_PID="$(cat "$AUTOSSH_PIDFILE")"
-        if [ ! -z "$JUMPSSH_PID" ] && ps "$JUMPSSH_PID" &> /dev/null  ; then
+        if [ -n "$JUMPSSH_PID" ] && ps "$JUMPSSH_PID" &> /dev/null  ; then
             return
         fi
         JUMPSSH_PID=""
     fi
     if [ -z "$JUMPSSH_PID" ] ; then
-        JUMPSSH_PID="$(pgrep -f ".+autossh.+${HOST}" | true)"
-        if [ ! -z "$JUMPSSH_PID" ] ; then
+        JUMPSSH_PID="$(pgrep -f ".+autossh.+${HOST} -N" || true)"
+        if [ -n "$JUMPSSH_PID" ] ; then
             echo "$JUMPSSH_PID" > "$AUTOSSH_PIDFILE"
         fi
     fi
-    if [ -z "$JUMPSSH_PID" ] ; then
+    if [ -n "$JUMPSSH_PID" ] ; then
         if [ -e "$AUTOSSH_PIDFILE" ] ; then
             rm "$AUTOSSH_PIDFILE"
         fi
@@ -83,7 +83,7 @@ start_jump()
 {
     local HOST="${1}"
     check_pid "$HOST"
-    if [ ! -z "$JUMPSSH_PID" ] ; then
+    if [ -n "$JUMPSSH_PID" ] ; then
         warn "${HOST} already running"
         return
     fi
@@ -145,6 +145,10 @@ case "${CMD}" in
         else
             status_jump "$JUMP"
         fi
+        ;;
+    restart)
+        "$0" stop
+        "$0" start
         ;;
     *)
         usage

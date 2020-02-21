@@ -1,5 +1,6 @@
 
 # -*-Shell-script-*-
+# shellcheck shell=bash
 if [ -z "$JUMPSSH_SOCKS" ] ; then
     >&2 echo "JUMPSSH_SOCKS not found, behavior undefined"
 fi
@@ -19,14 +20,13 @@ function jumpssh {
     else
         JUMP="${1//-/}"
         shift
-        JUNK="$*"
         VARNAME="${JUMP}_PORT"
         PORT="${!VARNAME}"
         if [ "$PORT" == "" ] ; then
             echo "invalid jump shortname"
         else
             # shellcheck disable=SC2029,SC2086
-            ssh -o ProxyCommand="nc -x localhost:$PORT %h %p" $JUNK
+            ssh -o ProxyCommand="nc -x localhost:$PORT %h %p" "$@"
         fi
     fi
 }
@@ -37,13 +37,12 @@ function jumpscp {
     else
         JUMP="${1//-/}"
         shift
-        JUNK=$*
         VARNAME="${JUMP}_PORT"
         PORT="${!VARNAME}"
         if [ "$PORT" == "" ] ; then
             echo "invalid jump shortname"
         else
-            scp -o ProxyCommand="nc -x localhost:$PORT %h %p" $JUNK
+            scp -o ProxyCommand="nc -x localhost:$PORT %h %p" "$@"
         fi
     fi
 }
@@ -54,13 +53,12 @@ function jumpcurl {
     else
         JUMP="${1//-/}"
         shift
-        JUNK=$*
         VARNAME="${JUMP}_PORT"
         PORT="${!VARNAME}"
         if [ "$PORT" == "" ] ; then
             echo "invalid jump shortname"
         else
-            curl --proxy "socks5h://127.0.0.1:${PORT}" "$JUNK"
+            curl --proxy "socks5h://127.0.0.1:${PORT}" "$@"
         fi
     fi
 }
