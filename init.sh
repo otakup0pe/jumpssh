@@ -79,7 +79,11 @@ function jump_prompt {
             P_SOCKS=""
         fi
     else
-        P_SOCKS="$(netstat -na | grep tcp4 | grep -ce ":$PORT")"
+        if command -v ss &> /dev/null ; then
+            P_SOCKS="$(ss -nta | grep -ce ":${PORT}")"
+        else
+            P_SOCKS="$(netstat -na | grep tcp4 | grep -ce ":${PORT}")"
+        fi
     fi
     if [ "$P_SOCKS" == "0" ] ; then
         C=$RED
