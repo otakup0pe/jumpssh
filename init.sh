@@ -71,7 +71,9 @@ function jump_prompt {
     elif [ "$OS" == "Cygwin" ] ; then
         P_SOCKS="$(netstat -na | grep TCP | grep -ce ":$PORT")"
     elif [ "$OS" == "WSL" ] ; then
-        if command -v netstat.exe &> /dev/null ; then
+        if command -v ss &> /dev/null ; then
+            P_SOCKS="$(ss -nta | grep -ce ":${PORT}")"
+        elif command -v netstat.exe &> /dev/null ; then
             P_SOCKS="$(netstat.exe -na | grep TCP | grep -c "$PORT")"
         elif [ -e /c/Windows/System32/NETSTAT.EXE ] ; then
             P_SOCKS="$( /c/Windows/System32/NETSTAT.EXE -na | grep TCP | grep -c "$PORT")"
